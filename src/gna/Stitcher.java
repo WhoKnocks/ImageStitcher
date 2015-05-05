@@ -37,7 +37,10 @@ public class Stitcher {
      * the illustration above.
      */
     public List<Position> seam(int[][] image1, int[][] image2) {
+        long start = System.currentTimeMillis();
         Dijkstra d = new Dijkstra(image1, image2);
+        long duration = (System.currentTimeMillis() - start);
+        System.out.println("Dijkstra: " + duration);
         return d.computePaths();
     }
 
@@ -55,11 +58,15 @@ public class Stitcher {
      * to check whether your implementation does this properly.
      */
     public void floodfill(Stitch[][] mask) {
+        long start = System.currentTimeMillis();
         mark(mask, Stitch.IMAGE1);
         mark(mask, Stitch.IMAGE2);
+        long duration = (System.currentTimeMillis() - start);
+        System.out.println("Floodfill: " + duration);
     }
 
     private void mark(Stitch[][] mask, Stitch image) {
+
         Position startPositon = new Position(0, 0);
 
         //find a start point
@@ -95,6 +102,8 @@ public class Stitcher {
                 }
             }
         }
+
+
     }
 
     private List<Position> getNeighborsOfPoint(int x, int y, Stitch[][] mask) {
@@ -136,6 +145,7 @@ public class Stitcher {
      * image1 and image2 are both non-null and have equal dimensions.
      */
     public Stitch[][] stitch(int[][] image1, int[][] image2) {
+        long start = System.currentTimeMillis();
         HashSet<Position> positions = new HashSet<>(seam(image1, image2));
 
         Stitch[][] stitches = new Stitch[image1.length][image1[0].length];
@@ -151,6 +161,9 @@ public class Stitcher {
         }
 
         floodfill(stitches);
+
+        long duration = (System.currentTimeMillis() - start);
+        System.out.println("Stitch: " + duration);
         return stitches;
     }
 }

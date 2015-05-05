@@ -37,11 +37,11 @@ public class Dijkstra {
     class Vertex implements Comparable<Vertex> {
         public Position position;
         public Edge[] neighbors = null;
-        public double minDistance = Double.POSITIVE_INFINITY;
+        public int minDistance = Integer.MAX_VALUE;
         public Vertex previous;
 
         public int compareTo(Vertex other) {
-            return Double.compare(minDistance, other.minDistance);
+            return Integer.compare(minDistance, other.minDistance);
         }
 
         public Vertex(Position position) {
@@ -94,11 +94,7 @@ public class Dijkstra {
                 if (xx == 0 && yy == 0) {
                     continue; // You are not neighbor to yourself
                 }
-                /*
-                if (!CONSIDER_CORNERS && Math.abs(xx) + Math.abs(yy) > 1) {
-                    continue;
-                }
-                */
+
                 if (isOnMap(x + xx, y + yy)) {
                     neighbors.add(new Position(x + xx, y + yy));
                 }
@@ -114,7 +110,7 @@ public class Dijkstra {
     public List<Position> computePaths() {
         Vertex end = start;
 
-        start.minDistance = 0.;
+        start.minDistance = 0;
         PriorityQueue<Vertex> vertexQueue = new PriorityQueue<>();
         vertexQueue.add(start);
 
@@ -131,8 +127,8 @@ public class Dijkstra {
             // Visit each edge exiting polled
             for (Edge e : polled.getNeighbors()) {
                 Vertex neighbor = e.neighbor;
-                double weight = e.weight;
-                double distanceThroughPolled = polled.minDistance + weight;
+                int weight = e.weight;
+                int distanceThroughPolled = polled.minDistance + weight;
 
                 if (distanceThroughPolled < neighbor.minDistance) {
                     vertexQueue.remove(neighbor);
