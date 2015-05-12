@@ -37,13 +37,10 @@ public class Stitcher {
      * the illustration above.
      */
     public List<Position> seam(int[][] image1, int[][] image2) {
-        long start = System.currentTimeMillis();
         Dijkstra d = new Dijkstra(image1, image2);
-        long duration = (System.currentTimeMillis() - start);
-        System.out.println("Dijkstra: " + duration);
-        return d.computePaths();
+        List<Position> seam = d.computeShortestPath();
+        return seam;
     }
-
 
     /**
      * Apply the floodfill algorithm described in the assignment to mask. You can assume the mask
@@ -58,11 +55,8 @@ public class Stitcher {
      * to check whether your implementation does this properly.
      */
     public void floodfill(Stitch[][] mask) {
-        long start = System.currentTimeMillis();
         mark(mask, Stitch.IMAGE1);
         mark(mask, Stitch.IMAGE2);
-        long duration = (System.currentTimeMillis() - start);
-        System.out.println("Floodfill: " + duration);
     }
 
     private void mark(Stitch[][] mask, Stitch image) {
@@ -79,31 +73,32 @@ public class Stitcher {
             }
         }
 
-        //linked-list is ideal for a queue implementation
-        Queue<Position> posQueue = new LinkedList<>();
+        //check if a startposition is found
+        if (!startPositon.equals(new Position(0, 0))) {
+            //linked-list is ideal for a queue implementation
+            Queue<Position> posQueue = new LinkedList<>();
 
-        //map to see if a node is processed
-        HashMap<Position, Boolean> isProcessed = new HashMap<>();
+            //map to see if a node is processed
+            HashMap<Position, Boolean> isProcessed = new HashMap<>();
 
-        //add the start point to the empty queue
-        posQueue.add(startPositon);
+            //add the start point to the empty queue
+            posQueue.add(startPositon);
 
-        isProcessed.put(startPositon, false);
-        while (!posQueue.isEmpty()) {
-            Position p = posQueue.poll();
+            isProcessed.put(startPositon, false);
+            while (!posQueue.isEmpty()) {
+                Position p = posQueue.poll();
 
-            if (mask[p.getY()][p.getX()] == Stitch.EMPTY && !isProcessed.get(p)) {
-                mask[p.getY()][p.getX()] = image;
-                isProcessed.put(p, true);
-                List<Position> positionList = getNeighborsOfPoint(p.getX(), p.getY(), mask);
-                for (Position position : positionList) {
-                    isProcessed.put(position, false);
-                    posQueue.add(position);
+                if (mask[p.getY()][p.getX()] == Stitch.EMPTY && !isProcessed.get(p)) {
+                    mask[p.getY()][p.getX()] = image;
+                    isProcessed.put(p, true);
+                    List<Position> positionList = getNeighborsOfPoint(p.getX(), p.getY(), mask);
+                    for (Position position : positionList) {
+                        isProcessed.put(position, false);
+                        posQueue.add(position);
+                    }
                 }
             }
         }
-
-
     }
 
     private List<Position> getNeighborsOfPoint(int x, int y, Stitch[][] mask) {
@@ -111,9 +106,10 @@ public class Stitcher {
         for (int xx = -1; xx <= 1; xx++) {
             for (int yy = -1; yy <= 1; yy++) {
                 if (xx == 0 && yy == 0) {
-                    continue; // You are not neighbor to yourself
+                    continue; // stelt de parameterposities x en y voor, overslaan dus
                 }
 
+                //zort ervoor dat de schuin naast neighbors worden overgeslaan
                 if (Math.abs(xx) + Math.abs(yy) > 1) {
                     continue;
                 }
@@ -130,7 +126,6 @@ public class Stitcher {
         return x >= 0 && y >= 0 && x < mask[0].length && y < mask.length;
     }
 
-
     /**
      * Return the mask to stitch two images together. The seam runs from the upper
      * left to the lower right corner, where in general the rightmost part comes from
@@ -146,13 +141,16 @@ public class Stitcher {
      */
     public Stitch[][] stitch(int[][] image1, int[][] image2) {
         long start = System.currentTimeMillis();
-        HashSet<Position> positions = new HashSet<>(seam(image1, image2));
+
+        List<Position> seamPositionsList = seam(image1, image2);
+        //convert List to HashSet
+        HashSet<Position> seamPositions = new HashSet<>(seamPositionsList);
 
         Stitch[][] stitches = new Stitch[image1.length][image1[0].length];
 
         for (int y = 0; y < stitches.length; y++) {
             for (int x = 0; x < stitches[0].length; x++) {
-                if (positions.contains(new Position(x, y))) {
+                if (seamPositions.contains(new Position(x, y))) {
                     stitches[y][x] = Stitch.SEAM;
                 } else {
                     stitches[y][x] = Stitch.EMPTY;
@@ -164,6 +162,7 @@ public class Stitcher {
 
         long duration = (System.currentTimeMillis() - start);
         System.out.println("Stitch: " + duration);
+
         return stitches;
     }
 }
